@@ -6,15 +6,17 @@ public class App {
 
    public static void main(String[] args) {
       get("/hello", (req, res) -> "Hello World");
-      get("/add/:first/:second", (req, res) -> "" + calculateSum(parseParamToInt(req.params("first")) + parseParamToInt(req.params("second")))//
-      );
-      // TODO is number check
+      get("/add/:first/:second", (req, res) -> "" + calculateSum(req.params("first"), req.params("second")));
    }
 
    @Measure
-   private static String calculateSum(int i) {
-      // TODO Auto-generated method stub
-      return null;
+   private static int calculateSum(String first, String second) {
+      try {
+         Thread.sleep(2000);
+      } catch (InterruptedException e) {
+         // empty
+      }
+      return parseParamToInt(first) + parseParamToInt(second);
    }
 
    private static int parseParamToInt(String params) {
