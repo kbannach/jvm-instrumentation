@@ -23,10 +23,10 @@ public class ExecutionTimeTransformer implements ClassFileTransformer {
             if (m.getAnnotation(Measure.class) != null) {
                m.addLocalVariable("elapsedTime", CtClass.longType);
                m.insertBefore("elapsedTime = System.currentTimeMillis();");
-               m.insertAfter(String.format(
-                     " { elapsedTime = System.currentTimeMillis() - elapsedTime; System.out.println(\"[MEASUREMENT] Method %s from class %s execution time = \" + elapsedTime + \"ms (actual arguments: $1, $2)\"); } ",
-                     m.getName(),
-                     ctClazz.getName()));
+               String str = " { elapsedTime = System.currentTimeMillis() - elapsedTime;";
+               str += " System.out.print(\"[MEASUREMENT] Method %s from class %s execution time = \" + elapsedTime + \"ms";
+               str += " (actual arguments: \");" + getActualArgsCode() + "System.out.println(\")\"); } ";
+               m.insertAfter(String.format(str, m.getName(), ctClazz.getName()));
             }
          }
          return ctClazz.toBytecode();
@@ -36,5 +36,16 @@ public class ExecutionTimeTransformer implements ClassFileTransformer {
          e.printStackTrace(System.out);
       }
       return null; // didn't change anything
+   }
+
+   private String getActualArgsCode() {
+      String ret = "";
+      ret += "for (int i = 0; i < $args.length; i++) {";
+      ret += "  System.out.print($args[i]);";
+      ret += "  if (i != $args.length - 1) {";
+      ret += "    System.out.print(\", \");";
+      ret += "  }";
+      ret += "}";
+      return ret;
    }
 }
