@@ -13,10 +13,9 @@ public class ExecutionTimeTransformer implements ClassFileTransformer {
 
    @Override
    public byte[] transform(ClassLoader loader, String className, Class< ? > classBeingRedefined, ProtectionDomain protectionDomain, byte[] bytes) throws IllegalClassFormatException {
-      byte[] result = bytes;
       try {
-         if (className == null)
-            return result;
+         if (className == null || className.startsWith("javassist") || className.startsWith("java/lang"))
+            return null; // didn't change anything
          String dotClassName = className.replace('/', '.');
          ClassPool cp = ClassPool.getDefault();
          CtClass ctClazz = cp.get(dotClassName);
@@ -25,17 +24,17 @@ public class ExecutionTimeTransformer implements ClassFileTransformer {
                m.addLocalVariable("elapsedTime", CtClass.longType);
                m.insertBefore("elapsedTime = System.currentTimeMillis();");
                m.insertAfter(String.format(
-                     " { elapsedTime = System.currentTimeMillis() - elapsedTime; System.out.println(\" Method %s from class %s execution time = \" + elapsedTime + \" (actual arguments: $1, $2)\"); } ",
+                     " { elapsedTime = System.currentTimeMillis() - elapsedTime; System.out.println(\"[MEASUREMENT] Method %s from class %s execution time = \" + elapsedTime + \"ms (actual arguments: $1, $2)\"); } ",
                      m.getName(),
                      ctClazz.getName()));
-               result = ctClazz.toBytecode();
             }
          }
+         return ctClazz.toBytecode();
       } catch (NotFoundException e) {
          // ignore
       } catch (Throwable e) {
          e.printStackTrace(System.out);
       }
-      return result;
+      return null; // didn't change anything
    }
 }
