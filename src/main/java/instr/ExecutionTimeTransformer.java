@@ -7,7 +7,6 @@ import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.NotFoundException;
-import service.Measure;
 
 public class ExecutionTimeTransformer implements ClassFileTransformer {
 
